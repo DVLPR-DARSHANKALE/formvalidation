@@ -51,20 +51,25 @@ class ServiceTypeState extends AddServicesState {
   List<Object> get props => [_dateTime];
 }
 
-class CarTypeState extends AddServicesState {
-  final String selectedType;
-
-  const CarTypeState({required this.selectedType});
-
-  @override
-  //
-  List<Object> get props => [selectedType];
-}
-
 class PriceAndDuractionState extends AddServicesState {
   final DateTime _dateTime = DateTime.now();
 
   @override
   // TODO: implement props
   List<Object> get props => [_dateTime];
+}
+
+class SubmitAddServiceStates extends AddServicesState {}
+
+class SubmitAddServiceLoadingState extends SubmitAddServiceStates {}
+
+class SubmitAddServiceSuccessState extends SubmitAddServiceStates {}
+
+class SubmitAddServiceErrorState extends SubmitAddServiceStates {
+  final String error;
+
+  SubmitAddServiceErrorState({required this.error});
+
+  @override
+  List<Object> get props => [error];
 }

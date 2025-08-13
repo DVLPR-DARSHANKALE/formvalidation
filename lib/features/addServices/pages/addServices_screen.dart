@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formvalidation/core/const/controller.dart';
 import 'package:formvalidation/features/addServices/bloc/addServices_bloc.dart';
 
 class AddServicesScreen extends StatelessWidget {
   AddServicesScreen({super.key});
+
   final List<String> carTypes = [
     "Hatchback",
     "Sedan",
@@ -20,15 +20,15 @@ class AddServicesScreen extends StatelessWidget {
     "Electric Car",
     "Hybrid Car",
   ];
-  CarTypeFormData carfromcart = CarTypeFormData();
 
   @override
   Widget build(BuildContext context) {
     TextEditingController titleField = TextEditingController();
     TextEditingController descField = TextEditingController();
-    final GlobalKey<FormState> _formkey = GlobalKey();
+    final GlobalKey<FormState> formkey = GlobalKey();
 
     final bloc = context.read<AddServicesBloc>();
+
     return Scaffold(
       appBar: AppBar(title: Text("Add new services")),
       body: Container(
@@ -38,6 +38,8 @@ class AddServicesScreen extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: 20),
+
+              // Image Picker section
               BlocBuilder<AddServicesBloc, AddServicesState>(
                 builder: (context, state) {
                   if (state is PickImageEventLoadingState) {
@@ -72,7 +74,6 @@ class AddServicesScreen extends StatelessWidget {
                           Positioned(
                             top: -10,
                             left: -3,
-
                             child: FilledButton.icon(
                               style: ButtonStyle(
                                 backgroundColor: WidgetStatePropertyAll(
@@ -122,17 +123,18 @@ class AddServicesScreen extends StatelessWidget {
               ),
 
               SizedBox(height: 10),
+
+              // Form Title & Description
               Form(
-                key: _formkey,
+                key: formkey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextFormField(
                       validator: (value) {
-                        if (value == null || value == "".trim()) {
+                        if (value == null || value.trim().isEmpty) {
                           return "This field is required";
                         }
-
                         return null;
                       },
                       controller: titleField,
@@ -154,7 +156,10 @@ class AddServicesScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
               SizedBox(height: 10),
+
+              // Available Switch
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -175,6 +180,8 @@ class AddServicesScreen extends StatelessWidget {
                       ),
                     ),
                     BlocBuilder<AddServicesBloc, AddServicesState>(
+                      buildWhen: (previous, current) =>
+                          current is ToggleSwitchState,
                       builder: (context, state) {
                         bool switchValue = false;
                         if (state is ToggleSwitchState) {
@@ -198,7 +205,10 @@ class AddServicesScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
               SizedBox(height: 15),
+
+              // Vehicle Type Checkboxes
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -263,7 +273,10 @@ class AddServicesScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
               SizedBox(height: 15),
+
+              // Service Type Checkboxes
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -324,7 +337,10 @@ class AddServicesScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
               SizedBox(height: 10),
+
+              // Four Wheeler Type List
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -342,7 +358,6 @@ class AddServicesScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 12),
-
                     BlocBuilder<AddServicesBloc, AddServicesState>(
                       builder: (context, state) {
                         return ListView.builder(
@@ -350,7 +365,6 @@ class AddServicesScreen extends StatelessWidget {
                           padding: EdgeInsets.only(bottom: 10),
                           shrinkWrap: true,
                           itemCount: bloc.carFromDate.length,
-
                           itemBuilder: (context, index) =>
                               cartTypeform(bloc, index),
                         );
@@ -377,15 +391,25 @@ class AddServicesScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
               SizedBox(height: 10),
+
               SizedBox(
                 width: double.infinity,
-
                 child: FilledButton(
                   style: ButtonStyle(
                     backgroundColor: WidgetStatePropertyAll(Colors.black),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    if (formkey.currentState!.validate()) {
+                      bloc.add(
+                        SubmitAddServiceEvent(
+                          title: titleField.text,
+                          description: descField.text,
+                        ),
+                      );
+                    }
+                  },
                   child: Text("Add Service"),
                 ),
               ),
@@ -398,11 +422,12 @@ class AddServicesScreen extends StatelessWidget {
     );
   }
 
-  cartTypeform(AddServicesBloc bloc, index) {
+  Widget cartTypeform(AddServicesBloc bloc, int index) {
+    final carData = bloc.carFromDate[index];
     return Container(
       margin: EdgeInsets.only(bottom: 15),
       padding: EdgeInsets.symmetric(horizontal: 10),
-      height: 260,
+      height: 280,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -414,30 +439,37 @@ class AddServicesScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("${index + 1}.Type"),
-              IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
+              Text("${index + 1}. Type"),
+              IconButton(
+                onPressed: () {
+                  bloc.add(DeleteCarTypeItemEvent(index: index));
+                },
+                icon: Icon(Icons.delete),
+              ),
             ],
           ),
           DropdownButton<String>(
             hint: const Text("Select Car Type"),
-            value:
-                carfromcart.selectedCarType, // Set current selected value here
+            value: bloc.carFromDate[index].selectedCarType,
             items: carTypes
-                .map((e) => DropdownMenuItem<String>(value: e, child: Text(e)))
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                 .toList(),
             onChanged: (value) {
               if (value != null) {
-                carfromcart.selectedCarType = value;
+                bloc.add(
+                  UpdateCarTypeItemEvent(index: index, selectedCarType: value),
+                );
               }
             },
           ),
-
+          const SizedBox(height: 8),
           Text("at Garrage"),
           SizedBox(
             child: Row(
               children: [
                 Expanded(
                   child: TextFormField(
+                    controller: carData.garagePriceField,
                     decoration: InputDecoration(
                       hintText: "Price",
                       border: OutlineInputBorder(),
@@ -447,6 +479,7 @@ class AddServicesScreen extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
+                    controller: carData.garageDurationField,
                     decoration: InputDecoration(
                       hintText: "Duration",
                       border: OutlineInputBorder(),
@@ -456,18 +489,19 @@ class AddServicesScreen extends StatelessWidget {
               ],
             ),
           ),
-
           BlocBuilder<AddServicesBloc, AddServicesState>(
             builder: (context, state) {
               if (bloc.serviceType.contains("Doorstep")) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    SizedBox(height: 12),
                     Text("at Doorstep"),
                     Row(
                       children: [
                         Expanded(
                           child: TextFormField(
+                            controller: carData.doorstepPriceField,
                             decoration: InputDecoration(
                               hintText: "Price",
                               border: OutlineInputBorder(),
@@ -477,6 +511,7 @@ class AddServicesScreen extends StatelessWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: TextFormField(
+                            controller: carData.doorstepDurationField,
                             decoration: InputDecoration(
                               hintText: "Duration",
                               border: OutlineInputBorder(),

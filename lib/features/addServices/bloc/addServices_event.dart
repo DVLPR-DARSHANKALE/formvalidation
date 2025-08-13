@@ -37,11 +37,50 @@ class ServiceTypeEvent extends AddServicesEvent {
   List<Object> get props => [value, _dateTime];
 }
 
-class CarTypeSelectedEvent extends AddServicesEvent {
-  final String selectedType;
-  const CarTypeSelectedEvent(this.selectedType);
+class PriceAndDuractionEvent extends AddServicesEvent {}
+
+class UpdateCarTypeItemEvent extends AddServicesEvent {
+  final int index;
+  final String? selectedCarType;
+  final String? garagePrice;
+  final String? garageDuration;
+  final String? doorstepPrice;
+  final String? doorstepDuration;
+
+  const UpdateCarTypeItemEvent({
+    required this.index,
+    this.selectedCarType,
+    this.garagePrice,
+    this.garageDuration,
+    this.doorstepPrice,
+    this.doorstepDuration,
+  });
+
   @override
-  List<Object> get props => [selectedType];
+  List<Object> get props => [
+    index,
+    selectedCarType ?? '',
+    garagePrice ?? '',
+    garageDuration ?? '',
+    doorstepPrice ?? '',
+    doorstepDuration ?? '',
+  ];
 }
 
-class PriceAndDuractionEvent extends AddServicesEvent {}
+class DeleteCarTypeItemEvent extends AddServicesEvent {
+  final int index;
+  const DeleteCarTypeItemEvent({required this.index});
+
+  @override
+  List<Object> get props => [index];
+}
+
+class SubmitAddServiceEvent extends AddServicesEvent {
+  final String title;
+  final String description;
+
+  const SubmitAddServiceEvent({required this.title, required this.description});
+
+  @override
+  List<Object> get props => [title, description];
+}
